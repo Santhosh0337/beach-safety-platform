@@ -1,0 +1,30 @@
+
+# dependencies
+node_modules
+
+# build output
+dist
+dist-ssr
+*.tsbuildinfo
+coverage
+
+# environment files (never commit real secrets)
+.env
+.env.*
+!.env.example
+*.local
+
+# Vercel
+.vercel
+
+# logs
+logs
+*.log
+npm-debug.log*
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
