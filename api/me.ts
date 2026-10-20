@@ -1,7 +1,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { authenticateClerkRequest } from '../server/auth/clerk';
-import { getUserRole } from '../server/auth/roles';
+import { authenticateClerkRequest } from '../server/auth/clerk.js';
+import { getUserRole } from '../server/auth/roles.js';
 
 export default async function handler(
   req: VercelRequest,

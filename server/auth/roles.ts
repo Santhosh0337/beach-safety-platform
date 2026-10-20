@@ -1,5 +1,5 @@
 
-import { getDb } from '../db/mongodb';
+import { getDb } from '../db/mongodb.js';
 
 export const USER_ROLES = [
   'tourist',

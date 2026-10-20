@@ -1,9 +1,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { authenticateClerkRequest } from '../../server/auth/clerk';
-import { getDb } from '../../server/db/mongodb';
-import { USER_ROLES, type UserRole } from '../../server/auth/roles';
-
+import { authenticateClerkRequest } from '../../server/auth/clerk.js';
+import { getDb } from '../../server/db/mongodb.js';
+import { USER_ROLES, type UserRole } from '../../server/auth/roles.js';
 function getAdminUserIds(): string[] {
   return (process.env.ADMIN_CLERK_USER_IDS ?? '')
     .split(',')
