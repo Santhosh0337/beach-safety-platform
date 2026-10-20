@@ -25,7 +25,9 @@ export default function App() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch('/api/health', { signal: controller.signal })
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/health`, {
+  signal: controller.signal,
+})
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json() as Promise<HealthResponse>;
