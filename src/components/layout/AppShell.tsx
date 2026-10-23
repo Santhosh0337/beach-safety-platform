@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { HealthState } from '../../hooks/useApiHealth';
-import { LogoMark, NavIcon } from '../ui/icons';
+import { NavIcon } from '../ui/icons';
 import type { NavIconName } from '../ui/icons';
 import { TopBar } from './TopBar';
 
@@ -20,55 +20,43 @@ const NAV_ITEMS: readonly NavItem[] = [
   { name: 'settings', label: 'Settings', active: false },
 ];
 
-export function AppShell({
-  health,
-  children,
-}: {
-  health: HealthState;
-  children: ReactNode;
-}) {
+export function AppShell({ health, children }: { health: HealthState; children: ReactNode }) {
   return (
-    <div className="shell">
-      <a className="skip-link" href="#main">
+    <div className="cc-shell">
+      <a className="cc-skip" href="#main">
         Skip to main content
       </a>
 
-      <nav className="rail" aria-label="Primary">
-        <div className="rail-brand" aria-hidden="true">
-          <LogoMark />
-        </div>
-        <ul className="rail-list">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.name}>
-              {item.active ? (
-                <button
-                  type="button"
-                  className="rail-item is-active"
-                  aria-current="page"
-                >
-                  <NavIcon name={item.name} />
-                  <span className="rail-label">{item.label}</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="rail-item"
-                  disabled
-                  aria-label={`${item.label} (planned, not available)`}
-                  title={`${item.label}: planned, not available yet`}
-                >
-                  <NavIcon name={item.name} />
-                  <span className="rail-label">{item.label}</span>
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <TopBar health={health} />
 
-      <div className="shell-main">
-        <TopBar health={health} />
-        <main id="main" className="content" tabIndex={-1}>
+      <div className="cc-body">
+        <nav className="cc-rail" aria-label="Dashboard sections">
+          <ul className="cc-rail__list">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.name}>
+                {item.active ? (
+                  <button type="button" className="cc-rail__item is-active" aria-current="page">
+                    <NavIcon name={item.name} />
+                    <span className="cc-rail__label">{item.label}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="cc-rail__item"
+                    disabled
+                    aria-label={`${item.label} (planned, not available)`}
+                    title={`${item.label}: planned, not available yet`}
+                  >
+                    <NavIcon name={item.name} />
+                    <span className="cc-rail__label">{item.label}</span>
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <main id="main" className="cc-content" tabIndex={-1}>
           {children}
         </main>
       </div>

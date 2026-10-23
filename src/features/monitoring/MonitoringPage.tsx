@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { BEACHES, DEFAULT_BEACH_ID } from '../../data/beaches';
 import type { HealthState } from '../../hooks/useApiHealth';
-import type { BeachId } from '../../types/monitoring';
+import type { BeachId, MapStatus } from '../../types/monitoring';
+import { CoastalMap } from './CoastalMap';
 import {
-  AuthNotice,
   DataSourcesPanel,
-  DisclaimerBanner,
   EnvironmentStrip,
   IncidentsPanel,
-  MapPlaceholder,
+  NoticeStrip,
   PageFooter,
+  RiskLegend,
   SimulatedBanner,
   ZonesPanel,
 } from './panels';
@@ -17,37 +17,53 @@ import {
 export function MonitoringPage({ health }: { health: HealthState }) {
   const [beachId, setBeachId] = useState<BeachId>(DEFAULT_BEACH_ID);
   const [showSimulated, setShowSimulated] = useState(false);
+  const [mapStatus, setMapStatus] = useState<MapStatus>('loading');
 
   const beach = BEACHES.find((item) => item.id === beachId) ?? BEACHES[0];
 
   return (
-    <div className="page">
-      <DisclaimerBanner />
-      <AuthNotice />
+    <div className="cc-page">
+      <NoticeStrip />
 
-      <div className="toolbar">
-        <div className="segmented" role="group" aria-label="Beach">
-          {BEACHES.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="segment"
-              aria-pressed={item.id === beach.id}
-              onClick={() => setBeachId(item.id)}
-            >
-              {item.name}
-            </button>
-          ))}
+      <div className="cc-controls">
+        <div className="cc-controls__station">
+          <span className="cc-controls__label" id="station-label">
+            Station
+          </span>
+          <div className="cc-seg" role="group" aria-labelledby="station-label">
+            {BEACHES.map((item) => {
+              const active = item.id === beach.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={active ? 'cc-seg__btn is-active' : 'cc-seg__btn'}
+                  aria-pressed={active}
+                  onClick={() => setBeachId(item.id)}
+                >
+                  <span className="cc-seg__name">{item.name}</span>
+                  <span className="cc-seg__coords">
+                    {item.lat.toFixed(4)}° N · {item.lng.toFixed(4)}° E
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="cc-controls__sector">{beach.sector}</span>
         </div>
 
-        <label className="switch">
+        <label className="cc-switch">
           <input
             type="checkbox"
             role="switch"
             checked={showSimulated}
             onChange={(event) => setShowSimulated(event.target.checked)}
           />
-          <span>Show simulated demo data</span>
+          <span className="cc-switch__track" aria-hidden="true" />
+          <span className="cc-switch__text">
+            <span className="cc-switch__title">Demo data</span>
+            <span className="cc-switch__state">{showSimulated ? 'On · simulated' : 'Off'}</span>
+          </span>
         </label>
       </div>
 
@@ -55,14 +71,29 @@ export function MonitoringPage({ health }: { health: HealthState }) {
 
       <EnvironmentStrip beach={beach} showSimulated={showSimulated} />
 
-      <div className="dash-grid">
-        <MapPlaceholder beach={beach} />
-        <div className="side">
+      <div className="cc-workspace">
+        <section className="cc-panel cc-panel--map" aria-labelledby="map-heading">
+          <header className="cc-panel__head">
+            <div className="cc-panel__titles">
+              <h2 id="map-heading" className="cc-panel__title">
+                Coastal monitoring map
+              </h2>
+              <span className="cc-panel__meta">
+                {beach.locality}, {beach.state}
+              </span>
+            </div>
+          </header>
+          <CoastalMap beach={beach} showSimulated={showSimulated} onStatusChange={setMapStatus} />
+        </section>
+
+        <aside className="cc-side" aria-label="Hazards, incidents and risk categories">
           <ZonesPanel beach={beach} showSimulated={showSimulated} />
           <IncidentsPanel beach={beach} showSimulated={showSimulated} />
-          <DataSourcesPanel />
-        </div>
+          <RiskLegend />
+        </aside>
       </div>
+
+      <DataSourcesPanel mapStatus={mapStatus} />
 
       <PageFooter health={health} />
     </div>

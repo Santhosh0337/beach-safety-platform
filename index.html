@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <!-- Applies the saved theme before first paint so there is no flash of the wrong theme.
+         Keep in sync with src/theme/theme.ts (storage key "bs-theme", default "system", fallback dark). -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        try {
+          var pref = localStorage.getItem('bs-theme');
+          if (pref !== 'dark' && pref !== 'light' && pref !== 'system') pref = 'system';
+          var light = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+          root.dataset.theme = pref === 'system' ? (light ? 'light' : 'dark') : pref;
+          root.dataset.themePref = pref;
+        } catch (e) {
+          root.dataset.theme = 'dark';
+          root.dataset.themePref = 'system';
+        }
+      })();
+    </script>
     <title>Beach Safety Intelligence Platform</title>
   </head>
   <body>

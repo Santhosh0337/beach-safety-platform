@@ -4,7 +4,9 @@ import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/react'
 import './index.css'
 import App from './App.tsx'
+import { initTheme } from './theme/theme'
 
+initTheme()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

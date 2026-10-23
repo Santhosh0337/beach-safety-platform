@@ -1,0 +1,70 @@
+/* Theme selector, shared by the landing page and the dashboard.
+ * Colours come from the root-level tokens in index.css, which follow the active theme. */
+
+.ts {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  height: 32px;
+  font-family: var(--font-sans);
+}
+
+.ts .ts__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-left: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  justify-content: center;
+}
+
+.ts .ts__opt:first-child {
+  border-left: 0;
+}
+
+.ts .ts__opt:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.ts .ts__opt[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.ts .ts__opt:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.ts__icon {
+  flex: none;
+  display: block;
+}
+
+/* Icon-only on narrow screens; the accessible name and tooltip remain. */
+@media (max-width: 1180px) {
+  .ts__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .ts .ts__opt {
+    padding: 0;
+    width: 34px;
+  }
+}

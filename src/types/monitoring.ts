@@ -16,6 +16,12 @@ export type DataProvenance =
 /** Provisional prototype categories, not validated safety standards. */
 export type RiskLevel = 'red' | 'orange' | 'yellow' | 'green' | 'gray';
 
+/**
+ * Whether the OpenStreetMap basemap is actually delivering tiles.
+ * Measured in the browser from tile load/error events, not assumed.
+ */
+export type MapStatus = 'loading' | 'ready' | 'unavailable';
+
 export type BeachId = 'rushikonda' | 'rk-beach';
 
 export type MetricId =
@@ -29,6 +35,10 @@ export interface Beach {
   name: string;
   locality: string;
   state: string;
+  lat: number;
+  lng: number;
+  zoom: number;
+  sector: string;
 }
 
 export interface SimulatedZone {
@@ -38,6 +48,7 @@ export interface SimulatedZone {
   level: RiskLevel;
   summary: string;
   provenance: 'simulated';
+  centerOffset?: [number, number]; // [latOffset, lngOffset] for illustrative display on map
 }
 
 export interface SimulatedIncident {
@@ -46,6 +57,7 @@ export interface SimulatedIncident {
   label: string;
   status: string;
   provenance: 'simulated';
+  centerOffset?: [number, number];
 }
 
 export interface SimulatedMetric {

@@ -1,35 +1,65 @@
-/* Design tokens and base styles for Coastal Command. Layout lives in styles/dashboard.css. */
+/* Design tokens and base styles, shared by the landing page and the dashboard.
+ *
+ * Theme: <html data-theme="dark|light"> is set by index.html (before first paint) and by
+ * src/theme/theme.ts. Dark is the base; the light block below overrides only the tokens.
+ * Landing-page tokens (--bs-*) live in landing.css and are overridden there for light.
+ */
 
 :root {
   color-scheme: dark;
 
-  --bg: #080d14;
-  --surface: #0e151f;
-  --surface-2: #131c28;
-  --border: #1e2a3a;
-  --border-strong: #2c3b50;
+  /* Surfaces and lines (dark: near-black, thin slate borders) */
+  --bg: #000000;
+  --surface: #0b0f14;
+  --surface-2: #111827;
+  --surface-3: #182132;
+  --border: #1f2937;
+  --border-strong: #374151;
 
-  --text: #e7edf5;
-  --text-muted: #9fadc0;
-  --text-faint: #7f8da1;
+  --text: #ffffff;
+  --text-muted: #a7b0ba;
+  --text-faint: #8a94a3;
 
-  --accent: #2dd4bf;
-  --accent-ink: #04211d;
-  --focus: #5eead4;
+  --accent: #ffffff;
+  --accent-ink: #000000;
+  --link: #ffffff;
+  --focus: #ffffff;
 
-  /* Risk colors are reserved for risk levels. Each level also has its own icon and label. */
-  --risk-red: #f2625f;
-  --risk-orange: #f5a04a;
-  --risk-yellow: #e6c84b;
-  --risk-green: #4cc38a;
-  --risk-gray: #8a97aa;
+  /* Ocean palette (landing canvas fallback) */
+  --ocean-abyss: #02050a;
+  --ocean-deep: #06101a;
+  --ocean-mid: #0e2233;
+  --ocean-crest: #a7b0ba;
+  --ocean-foam: #ffffff;
 
-  /* Violet is used only for simulated data. */
-  --sim: #b9a2ff;
+  /* Risk semantics: colour is always paired with a shape icon and a text label */
+  --risk-red: #ef4444;
+  --risk-orange: #f59e0b;
+  --risk-yellow: #eab308;
+  --risk-green: #10b981;
+  --risk-gray: #8a94a3;
 
-  --font-sans: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  --radius: 6px;
+  /* Data provenance */
+  --sim: #b79cff;
+  --sim-bg: rgba(167, 139, 250, 0.12);
+  --sim-border: rgba(167, 139, 250, 0.45);
+  --live: #34d399;
+  --live-bg: rgba(16, 185, 129, 0.12);
+  --live-border: rgba(16, 185, 129, 0.4);
+  --unavail: #a7b0ba;
+  --unavail-bg: rgba(138, 148, 163, 0.12);
+  --unavail-border: rgba(138, 148, 163, 0.35);
+  --warn: #f59e0b;
+  --danger: #f87171;
+
+  --shadow-pop: 0 6px 18px rgba(0, 0, 0, 0.5);
+
+  /* Square, architectural geometry */
+  --radius: 2px;
+
+  --font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 
   font: 14px/1.5 var(--font-sans);
   color: var(--text);
@@ -38,6 +68,52 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #eef2f6;
+  --surface-3: #e3e9f0;
+  --border: #dbe1e8;
+  --border-strong: #b4bfcc;
+
+  --text: #0b1220;
+  --text-muted: #435063;
+  --text-faint: #5b6778;
+
+  --accent: #0b1f33;
+  --accent-ink: #ffffff;
+  --link: #0b5a82;
+  --focus: #0b5a82;
+
+  --ocean-abyss: #eef3f7;
+  --ocean-deep: #e3ebf1;
+  --ocean-mid: #b9cfe0;
+  --ocean-crest: #5a7084;
+  --ocean-foam: #0b2233;
+
+  --risk-red: #b91c1c;
+  --risk-orange: #b45309;
+  --risk-yellow: #a16207;
+  --risk-green: #047857;
+  --risk-gray: #5b6778;
+
+  --sim: #6d28d9;
+  --sim-bg: rgba(109, 40, 217, 0.08);
+  --sim-border: rgba(109, 40, 217, 0.4);
+  --live: #047857;
+  --live-bg: rgba(4, 120, 87, 0.09);
+  --live-border: rgba(4, 120, 87, 0.4);
+  --unavail: #435063;
+  --unavail-bg: rgba(67, 80, 99, 0.08);
+  --unavail-border: rgba(67, 80, 99, 0.3);
+  --warn: #b45309;
+  --danger: #b91c1c;
+
+  --shadow-pop: 0 6px 18px rgba(11, 18, 32, 0.18);
 }
 
 *,
@@ -51,6 +127,7 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--bg);
+  color: var(--text);
 }
 
 #root {
@@ -60,8 +137,11 @@ body {
 h1,
 h2,
 h3,
+h4,
 p,
-ul {
+ul,
+dl,
+dd {
   margin: 0;
 }
 
@@ -85,12 +165,6 @@ pre {
   margin: 0;
   overflow-x: auto;
   font: 12px/1.5 var(--font-mono);
-}
-
-@media (max-width: 800px) {
-  :root {
-    font-size: 15px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
