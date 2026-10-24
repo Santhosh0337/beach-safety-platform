@@ -10,6 +10,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import healthHandler from '../api/health';
 import meHandler from '../api/me';
 import marineHandler from '../api/marine';
+import riskHandler from '../api/risk';
 import adminRolesHandler from '../api/admin/roles';
 
 const app = express();
@@ -62,6 +63,7 @@ function adaptVercelHandler(
 app.all('/api/health', adaptVercelHandler(healthHandler));
 app.all('/api/me', adaptVercelHandler(meHandler));
 app.all('/api/marine', adaptVercelHandler(marineHandler));
+app.all('/api/risk', adaptVercelHandler(riskHandler));
 app.all('/api/admin/roles', adaptVercelHandler(adminRolesHandler));
 
 app.get('/', (_req: Request, res: Response) => {
