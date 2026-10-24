@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BEACHES, DEFAULT_BEACH_ID } from '../../data/beaches';
 import type { HealthState } from '../../hooks/useApiHealth';
+import { useMarineConditions } from '../../hooks/useMarineConditions';
 import type { BeachId, MapStatus } from '../../types/monitoring';
 import { CoastalMap } from './CoastalMap';
 import {
@@ -18,6 +19,7 @@ export function MonitoringPage({ health }: { health: HealthState }) {
   const [beachId, setBeachId] = useState<BeachId>(DEFAULT_BEACH_ID);
   const [showSimulated, setShowSimulated] = useState(false);
   const [mapStatus, setMapStatus] = useState<MapStatus>('loading');
+  const { state: marine, retry } = useMarineConditions(beachId);
 
   const beach = BEACHES.find((item) => item.id === beachId) ?? BEACHES[0];
 
@@ -69,7 +71,7 @@ export function MonitoringPage({ health }: { health: HealthState }) {
 
       {showSimulated && <SimulatedBanner beach={beach} />}
 
-      <EnvironmentStrip beach={beach} showSimulated={showSimulated} />
+      <EnvironmentStrip beach={beach} showSimulated={showSimulated} marine={marine} onRetry={retry} />
 
       <div className="cc-workspace">
         <section className="cc-panel cc-panel--map" aria-labelledby="map-heading">
@@ -93,7 +95,7 @@ export function MonitoringPage({ health }: { health: HealthState }) {
         </aside>
       </div>
 
-      <DataSourcesPanel mapStatus={mapStatus} />
+      <DataSourcesPanel mapStatus={mapStatus} marine={marine} />
 
       <PageFooter health={health} />
     </div>

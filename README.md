@@ -64,3 +64,14 @@ file must be safe for anyone to read.
   bundled into the frontend. Never put secrets in a `VITE_` variable.
 - **Server-only:** `CLERK_SECRET_KEY`, `MONGODB_URI`, `MONGODB_DB_NAME`, `ADMIN_CLERK_USER_IDS`.
   These belong in your local `.env` and in the Render service settings only.
+
+## Live marine conditions
+
+`GET /api/marine?beachId=rushikonda|rk-beach` returns modelled wave height, wave period and sea-surface
+temperature from the Open-Meteo Marine API. These are **model forecasts, not sensor observations**, and
+not a safety assessment. The server reuses a stored `marine_observations` record for 10 minutes, otherwise
+calls the provider (10 s timeout) and stores the result. If the provider fails it returns the last stored
+record flagged `fallback` (and `stale` after 3 h of model age), or HTTP 503 with no values. Missing fields
+stay `null`. Optional `CORS_ALLOWED_ORIGINS` (comma separated) allows extra browser origins.
+
+`vercel.json` rewrites non-API paths to `index.html` so `/dashboard` works on direct visits.

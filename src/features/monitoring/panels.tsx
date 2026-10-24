@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { DataBadge } from '../../components/ui/DataBadge';
 import { RiskIcon } from '../../components/ui/icons';
 import { SIMULATED_ENVIRONMENT, SIMULATED_INCIDENTS, SIMULATED_ZONES } from '../../data/demo';
 import type { HealthState } from '../../hooks/useApiHealth';
+import type { MarineApiResponse, MarineState } from '../../types/marine';
 import type { Beach, MapStatus, MetricId, RiskLevel } from '../../types/monitoring';
 
 const RISK_LABELS: Record<RiskLevel, string> = {
@@ -28,10 +29,11 @@ const METRICS: readonly { id: MetricId; label: string; symbol: string; unit: str
   { id: 'sea-temperature', label: 'Sea surface temperature', symbol: 'SST', unit: '°C' },
 ];
 
-type SourceRow = { name: string; provider: string; kind: 'basemap' | 'unconnected' };
+type SourceRow = { name: string; provider: string; kind: 'basemap' | 'marine' | 'unconnected' };
 
 const DATA_SOURCES: readonly SourceRow[] = [
   { name: 'Basemap and coastal geography', provider: 'OpenStreetMap', kind: 'basemap' },
+  { name: 'Wave and sea-temperature forecast model', provider: 'Open-Meteo Marine API', kind: 'marine' },
   { name: 'Oceanographic and weather model', provider: 'INCOIS / ECMWF', kind: 'unconnected' },
   { name: 'Official weather and cyclone advisories', provider: 'IMD', kind: 'unconnected' },
   { name: 'Authority hazard overrides and beach flags', provider: 'Authority entry', kind: 'unconnected' },
@@ -105,7 +107,166 @@ export function SimulatedBanner({ beach }: { beach: Beach }) {
   );
 }
 
-export function EnvironmentStrip({ beach, showSimulated }: { beach: Beach; showSimulated: boolean }) {
+/** Re-renders periodically so displayed data ages keep counting while the page is open. */
+function useNow(intervalMs = 30_000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(timer);
+  }, [intervalMs]);
+  return now;
+}
+
+// Mirrors the server's data-freshness rule (server/marine/service.ts). Not a safety threshold.
+const STALE_AFTER_SECONDS = 3 * 60 * 60;
+
+function formatAge(seconds: number): string {
+  if (seconds < 90) return 'under 2 min';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 120) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
+function formatTime(iso: string | null): string {
+  if (!iso) return 'unknown';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'unknown';
+  const utc = date.toISOString().slice(0, 16).replace('T', ' ');
+  const ist = date.toLocaleString('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  return `${utc} UTC (${ist} IST)`;
+}
+
+type LiveReading = { value: string; unit: string } | null;
+
+function liveReading(
+  metric: MetricId,
+  data: MarineApiResponse['data'] | null,
+): LiveReading {
+  if (!data) return null;
+  const pick = (value: number | null, unit: string): LiveReading =>
+    value === null ? null : { value: value.toFixed(1), unit };
+  switch (metric) {
+    case 'wave-height':
+      return pick(data.waveHeightM, 'm');
+    case 'wave-period':
+      return pick(data.wavePeriodSeconds, 's');
+    case 'sea-temperature':
+      return pick(data.seaSurfaceTemperatureC, '°C');
+    default:
+      // The marine feed does not provide wind. It is never filled in with a guess.
+      return null;
+  }
+}
+
+function LiveStatusBar({
+  marine,
+  onRetry,
+  now,
+}: {
+  marine: MarineState;
+  onRetry: () => void;
+  now: number;
+}) {
+  if (marine.kind === 'not-configured') {
+    return (
+      <div className="cc-livebar cc-livebar--warn" role="status">
+        <p>
+          <strong>Live marine data is not configured.</strong> The API address (VITE_API_BASE_URL) is
+          not set in this build, so no request was made.
+        </p>
+      </div>
+    );
+  }
+
+  if (marine.kind === 'loading') {
+    return (
+      <div className="cc-livebar" role="status">
+        <p>
+          <strong>Loading marine conditions…</strong>
+          {marine.slow ? ' The API may be starting up, which can take up to a minute.' : ''}
+        </p>
+      </div>
+    );
+  }
+
+  if (marine.kind === 'error') {
+    return (
+      <div className="cc-livebar cc-livebar--warn" role="alert">
+        <p>
+          <strong>Live marine conditions are unavailable.</strong> {marine.message} No values are
+          shown, and demo values are not substituted.
+        </p>
+        {marine.retryable && (
+          <button type="button" className="cc-livebar__btn" onClick={onRetry}>
+            Retry
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const { response, receivedAt } = marine;
+  const elapsed = Math.max(0, Math.round((now - receivedAt) / 1000));
+  const modelAge =
+    response.data.modelAgeSeconds === null ? null : response.data.modelAgeSeconds + elapsed;
+  const stale =
+    response.status === 'stale' || modelAge === null || modelAge > STALE_AFTER_SECONDS;
+
+  return (
+    <div className={stale || response.warning ? 'cc-livebar cc-livebar--warn' : 'cc-livebar'} role="status">
+      <div className="cc-livebar__text">
+        {stale && (
+          <p>
+            <strong>Stale data.</strong>{' '}
+            {modelAge === null
+              ? 'The model time is unknown, so these values cannot be treated as current.'
+              : `These model values are ${formatAge(modelAge)} old.`}
+          </p>
+        )}
+        {response.warning && <p>{response.warning}</p>}
+        <p className="cc-livebar__meta">
+          Model time: {formatTime(response.data.modelTime)}
+          {modelAge !== null && !stale ? ` · ${formatAge(modelAge)} ago` : ''}
+          <br />
+          Retrieved by server: {formatTime(response.data.fetchedAt)} ·{' '}
+          {response.cache === 'hit'
+            ? 'recent stored record'
+            : response.cache === 'refreshed'
+              ? 'fresh from provider'
+              : 'older stored record'}
+          {response.persisted ? '' : ' · not saved to database'}
+        </p>
+      </div>
+      <button type="button" className="cc-livebar__btn" onClick={onRetry}>
+        Refresh
+      </button>
+    </div>
+  );
+}
+
+export function EnvironmentStrip({
+  beach,
+  showSimulated,
+  marine,
+  onRetry,
+}: {
+  beach: Beach;
+  showSimulated: boolean;
+  marine: MarineState;
+  onRetry: () => void;
+}) {
+  const now = useNow();
+  const liveData = marine.kind === 'ready' ? marine.response.data : null;
+
   return (
     <section className="cc-env" aria-labelledby="env-heading">
       <header className="cc-env__head">
@@ -114,35 +275,93 @@ export function EnvironmentStrip({ beach, showSimulated }: { beach: Beach; showS
         </h2>
         <span className="cc-panel__meta">{beach.name}</span>
         <p className="cc-env__note">
-          When connected: regional forecast model, several kilometres resolution. Values describe the
-          whole beach area, not individual zones.
+          Modelled forecast for the surrounding sea area (several kilometres resolution), not a sensor
+          reading at the beach. Values describe the whole beach area, not individual zones, and are
+          not a safety assessment.
         </p>
       </header>
+
+      <LiveStatusBar marine={marine} onRetry={onRetry} now={now} />
+
       <ul className="cc-env__grid">
         {METRICS.map((metric) => {
-          const sample = showSimulated ? SIMULATED_ENVIRONMENT[metric.id] : undefined;
+          const reading = liveReading(metric.id, liveData);
+          const isWind = metric.id === 'wind-speed';
+          let empty = 'No data';
+          if (marine.kind === 'loading') empty = 'Loading…';
+          else if (marine.kind === 'ready' && !isWind) empty = 'Not reported';
           return (
-            <li key={metric.id} className={sample ? 'cc-metric is-sim' : 'cc-metric'}>
+            <li key={metric.id} className="cc-metric">
               <div className="cc-metric__top">
                 <span className="cc-metric__label">{metric.label}</span>
                 <span className="cc-metric__sym">{metric.symbol}</span>
               </div>
-              {sample ? (
+              {reading ? (
                 <p className="cc-metric__value">
-                  {sample.value}
-                  <span className="cc-metric__unit">{sample.unit}</span>
+                  {reading.value}
+                  <span className="cc-metric__unit">{reading.unit}</span>
                 </p>
               ) : (
-                <p className="cc-metric__value cc-metric__value--empty">No data</p>
+                <p className="cc-metric__value cc-metric__value--empty">{empty}</p>
               )}
               <div className="cc-metric__foot">
-                <DataBadge provenance={sample ? 'simulated' : 'unavailable'} />
-                <span className="cc-metric__src">{sample ? 'Sample value' : 'Feed disconnected'}</span>
+                <DataBadge provenance={reading ? 'live-model' : 'unavailable'} />
+                <span className="cc-metric__src">
+                  {reading
+                    ? 'Modelled forecast'
+                    : isWind
+                      ? 'Not in marine feed'
+                      : marine.kind === 'ready'
+                        ? 'Missing from provider'
+                        : 'Feed unavailable'}
+                </span>
               </div>
             </li>
           );
         })}
       </ul>
+
+      {marine.kind === 'ready' && (
+        <p className="cc-env__attrib">
+          Source: {marine.response.attribution} (
+          <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
+            open-meteo.com
+          </a>
+          ). Model grid point {marine.response.data.gridPoint.latitude.toFixed(2)}° N,{' '}
+          {marine.response.data.gridPoint.longitude.toFixed(2)}° E. Wave direction and swell detail are
+          stored but not displayed here.
+        </p>
+      )}
+
+      {showSimulated && (
+        <div className="cc-env__sim">
+          <div className="cc-env__simhead">
+            <DataBadge provenance="simulated" />
+            <span>Sample values for demonstration. Not measurements, and unrelated to the live values above.</span>
+          </div>
+          <ul className="cc-env__grid">
+            {METRICS.map((metric) => {
+              const sample = SIMULATED_ENVIRONMENT[metric.id];
+              return (
+                <li key={metric.id} className="cc-metric is-sim">
+                  <div className="cc-metric__top">
+                    <span className="cc-metric__label">{metric.label}</span>
+                    <span className="cc-metric__sym">{metric.symbol}</span>
+                  </div>
+                  <p className="cc-metric__value">
+                    {sample.value}
+                    <span className="cc-metric__unit">{sample.unit}</span>
+                  </p>
+                  <div className="cc-metric__foot">
+                    <DataBadge provenance="simulated" />
+                    <span className="cc-metric__src">Sample value</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }
@@ -239,15 +458,29 @@ export function RiskLegend() {
   );
 }
 
-function sourceStatus(row: SourceRow, mapStatus: MapStatus): { label: string; tone: 'ok' | 'off' | 'warn' } {
+function sourceStatus(
+  row: SourceRow,
+  mapStatus: MapStatus,
+  marine: MarineState,
+): { label: string; tone: 'ok' | 'off' | 'warn' } {
   if (row.kind === 'unconnected') return { label: 'Not connected', tone: 'off' };
+  if (row.kind === 'marine') {
+    if (marine.kind === 'ready') {
+      return marine.response.status === 'stale' || marine.response.warning
+        ? { label: 'Stale or fallback', tone: 'warn' }
+        : { label: 'Data received', tone: 'ok' };
+    }
+    if (marine.kind === 'error') return { label: 'Unavailable', tone: 'warn' };
+    if (marine.kind === 'not-configured') return { label: 'Not configured', tone: 'off' };
+    return { label: 'Checking', tone: 'off' };
+  }
   // The basemap is the only source the app can observe: it reports from real tile responses.
   if (mapStatus === 'ready') return { label: 'Tiles responding', tone: 'ok' };
   if (mapStatus === 'unavailable') return { label: 'Unavailable', tone: 'warn' };
   return { label: 'Checking', tone: 'off' };
 }
 
-export function DataSourcesPanel({ mapStatus }: { mapStatus: MapStatus }) {
+export function DataSourcesPanel({ mapStatus, marine }: { mapStatus: MapStatus; marine: MarineState }) {
   return (
     <Panel id="sources-heading" title="Data ingestion" meta="Connection state is verified, not assumed">
       <div className="cc-tablewrap">
@@ -261,7 +494,7 @@ export function DataSourcesPanel({ mapStatus }: { mapStatus: MapStatus }) {
           </thead>
           <tbody>
             {DATA_SOURCES.map((row) => {
-              const status = sourceStatus(row, mapStatus);
+              const status = sourceStatus(row, mapStatus, marine);
               return (
                 <tr key={row.name}>
                   <th scope="row">{row.name}</th>

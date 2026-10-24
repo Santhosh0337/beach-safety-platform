@@ -9,6 +9,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 import healthHandler from '../api/health';
 import meHandler from '../api/me';
+import marineHandler from '../api/marine';
 import adminRolesHandler from '../api/admin/roles';
 
 const app = express();
@@ -17,6 +18,11 @@ app.use(express.json());
 const allowedOrigins = new Set([
   'https://beach-safety-platform.vercel.app',
   'http://localhost:5173',
+  // Optional extra origins (for example a Vercel preview or custom domain), comma separated.
+  ...(process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 ]);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -55,6 +61,7 @@ function adaptVercelHandler(
 
 app.all('/api/health', adaptVercelHandler(healthHandler));
 app.all('/api/me', adaptVercelHandler(meHandler));
+app.all('/api/marine', adaptVercelHandler(marineHandler));
 app.all('/api/admin/roles', adaptVercelHandler(adminRolesHandler));
 
 app.get('/', (_req: Request, res: Response) => {
