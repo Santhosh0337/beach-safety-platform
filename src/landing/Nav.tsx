@@ -4,7 +4,9 @@ import { ThemeSelector } from '../components/ui/ThemeSelector';
 import { useMediaQuery, useWindowScrolled } from '../hooks/browserHooks';
 import { NAV_LINKS } from './content';
 
-const COMPACT_QUERY = '(max-width: 860px)';
+// The full bar (brand, four links, theme selector, two buttons) needs about 1,010px of content
+// width. Below this the menu button is used instead, so nothing can run off the screen.
+const COMPACT_QUERY = '(max-width: 1120px)';
 
 type NavProps = {
   /** Sign-in controls supplied by the app (kept out of this component so auth stays in one place). */

@@ -16,25 +16,35 @@ html:has(.bs-landing) {
 
 .bs-landing {
   /* colours */
-  --bs-primary: #ffffff;
-  --bs-secondary: #a7b0ba;
-  --bs-tertiary: #374151;
-  --bs-neutral: #000000;
-  --bs-surface: #0b0f14;
-  --bs-surface-2: #111827;
+  --bs-primary: #f1f8fc;
+  --bs-secondary: #a9c0ce;
+  --bs-tertiary: #223a4d;
+  --bs-neutral: #050b12;
+  --bs-surface: #0a1824;
+  --bs-surface-2: #10222f;
   --bs-error: #ef4444;
-  --bs-primary-60: #ffffff99;
-  --bs-primary-20: #ffffff33;
+  --bs-primary-60: #f1f8fc99;
+  --bs-primary-20: #f1f8fc33;
 
-  /* colour of the legibility shade over the hero canvas (r g b) */
-  --bs-shade-rgb: 0 0 0;
+  /* accent and control borders: same family as the visitor dashboard */
+  --bs-accent: #6ccbef;
+  --bs-accent-ink: #062033;
+  --bs-border-strong: #35566c;
+  --bs-radius: 16px;
+  --bs-radius-sm: 12px;
 
-  /* ocean palette: used only inside the wave canvas and its fallback */
-  --ocean-abyss: #02050a;
-  --ocean-deep: #06101a;
-  --ocean-mid: #0e2233;
-  --ocean-crest: #a7b0ba;
-  --ocean-foam: #ffffff;
+  /* colour of the legibility shade over the hero canvas (r g b): navy, not black */
+  --bs-shade-rgb: 5 11 18;
+  /* soft cyan light near the horizon, drawn over the canvas */
+  --bs-horizon-glow: rgb(56 189 248 / 0.1);
+
+  /* ocean palette: used only inside the wave canvas and its fallback.
+     The canvas reads these as #rrggbb hex, so keep them hex. */
+  --ocean-abyss: #051322;
+  --ocean-deep: #071a2b;
+  --ocean-mid: #0d3550;
+  --ocean-crest: #38bdf8;
+  --ocean-foam: #d9f4ff;
 
   /* typography */
   --bs-font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
@@ -51,7 +61,7 @@ html:has(.bs-landing) {
   color: var(--bs-primary);
   font-family: var(--bs-font-sans);
   font-size: 16px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 24px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -77,7 +87,7 @@ html:has(.bs-landing) {
 }
 
 .bs-landing :focus-visible {
-  outline: 2px solid var(--bs-primary);
+  outline: 2px solid var(--bs-accent);
   outline-offset: 3px;
 }
 
@@ -109,42 +119,42 @@ html:has(.bs-landing) {
 
 .bs-h-lg {
   font-size: clamp(1.875rem, 1.2rem + 2.6vw, 46px);
-  font-weight: 300;
-  line-height: 1.404;
-  letter-spacing: -0.037em;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 
 .bs-h-md {
   font-size: clamp(1.5rem, 1.1rem + 1.2vw, 31px);
-  font-weight: 300;
-  line-height: 1.19;
-  letter-spacing: -0.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
 .bs-h-sm {
   font-size: 21px;
-  font-weight: 300;
-  line-height: 25px;
+  font-weight: 600;
+  line-height: 26px;
 }
 
 .bs-body-lg {
   font-size: 18px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 28px;
 }
 
 .bs-body-md {
   font-size: 16px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 24px;
 }
 
 .bs-body-sm-text {
   font-family: var(--bs-font-mono);
   font-size: 14px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 20px;
   letter-spacing: 1.4px;
 }
@@ -172,18 +182,17 @@ html:has(.bs-landing) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  height: 50px;
-  padding: 16px 32px;
+  gap: 10px;
+  height: 48px;
+  padding: 0 24px;
   border: 1px solid transparent;
-  border-radius: 0;
+  border-radius: var(--bs-radius-sm);
   background: transparent;
-  font-family: var(--bs-font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 14px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  font-family: var(--bs-font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -194,24 +203,25 @@ html:has(.bs-landing) {
 }
 
 .bs-btn--primary {
-  background: var(--bs-primary);
-  border-color: var(--bs-primary);
-  color: var(--bs-neutral);
+  background: var(--bs-accent);
+  border-color: var(--bs-accent);
+  color: var(--bs-accent-ink);
 }
 
 .bs-btn--primary:hover {
-  background: var(--bs-primary-20);
-  border-color: var(--bs-primary-20);
-  color: var(--bs-primary);
+  background: color-mix(in srgb, var(--bs-accent) 82%, var(--bs-primary));
+  border-color: color-mix(in srgb, var(--bs-accent) 82%, var(--bs-primary));
 }
 
 .bs-btn--secondary {
-  border-color: var(--bs-primary-20);
+  border-color: var(--bs-border-strong);
+  background: color-mix(in srgb, var(--bs-surface-2) 55%, transparent);
   color: var(--bs-primary);
 }
 
 .bs-btn--secondary:hover:not(:disabled) {
-  border-color: var(--bs-primary);
+  border-color: var(--bs-accent);
+  background: var(--bs-surface-2);
 }
 
 .bs-btn:disabled {
@@ -221,7 +231,7 @@ html:has(.bs-landing) {
 
 .bs-btn--compact {
   height: 40px;
-  padding: 0 20px;
+  padding: 0 18px;
 }
 
 .bs-tertiary {
@@ -232,13 +242,14 @@ html:has(.bs-landing) {
   border: 0;
   background: transparent;
   font-family: var(--bs-font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 14px;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   text-decoration: none;
   text-underline-offset: 4px;
+  color: var(--bs-accent);
   cursor: pointer;
 }
 
@@ -260,7 +271,7 @@ html:has(.bs-landing) {
 .bs-card {
   background: var(--bs-neutral);
   border: 1px solid var(--bs-tertiary);
-  border-radius: 8px;
+  border-radius: var(--bs-radius);
   padding: 16px;
   color: var(--bs-primary);
 }
@@ -347,11 +358,13 @@ html:has(.bs-landing) {
 .bs-nav__bar {
   display: flex;
   align-items: center;
+  gap: 24px;
   height: var(--bs-nav-h);
 }
 
 .bs-brand {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 12px;
   text-decoration: none;
@@ -379,7 +392,8 @@ html:has(.bs-landing) {
 .bs-nav__links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  flex: none;
+  gap: 24px;
   margin: 0 0 0 auto;
   padding: 0;
   list-style: none;
@@ -387,6 +401,7 @@ html:has(.bs-landing) {
 
 .bs-nav__link {
   display: inline-block;
+  white-space: nowrap;
   padding: 8px 0;
   border-bottom: 1px solid transparent;
   color: var(--bs-secondary);
@@ -406,22 +421,28 @@ html:has(.bs-landing) {
 }
 
 .bs-nav__link[aria-current='location'] {
-  border-bottom-color: var(--bs-primary);
+  border-bottom-color: var(--bs-accent);
 }
 
 .bs-nav__auth {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: 12px;
-  margin-left: 32px;
+  gap: 8px;
+}
+
+/* Buttons supplied through authSlot are compact inside the bar. */
+.bs-nav__auth .bs-btn {
+  height: 40px;
+  padding: 0 16px;
 }
 
 .bs-menu-btn {
   height: 40px;
   margin-left: auto;
   padding: 0 16px;
-  border: 1px solid var(--bs-primary-20);
-  border-radius: 0;
+  border: 1px solid var(--bs-border-strong);
+  border-radius: var(--bs-radius-sm);
   background: transparent;
   font-family: var(--bs-font-mono);
   font-size: 10px;
@@ -433,7 +454,7 @@ html:has(.bs-landing) {
 }
 
 .bs-menu-btn:hover {
-  border-color: var(--bs-primary);
+  border-color: var(--bs-accent);
 }
 
 .bs-nav__panel {
@@ -525,7 +546,9 @@ html:has(.bs-landing) {
 }
 
 .bs-hero__vignette {
-  background: radial-gradient(ellipse at center, transparent 45%, rgb(var(--bs-shade-rgb) / 0.6) 100%);
+  background:
+    radial-gradient(ellipse 80% 38% at 50% 64%, var(--bs-horizon-glow), transparent 72%),
+    radial-gradient(ellipse at center, transparent 45%, rgb(var(--bs-shade-rgb) / 0.6) 100%);
 }
 
 .bs-hero__content {
@@ -537,7 +560,7 @@ html:has(.bs-landing) {
 
 .bs-hero__eyebrow {
   margin-bottom: 24px;
-  color: var(--bs-secondary);
+  color: var(--bs-accent);
 }
 
 .bs-hero__lead {
@@ -1008,6 +1031,11 @@ html:has(.bs-landing) {
   --bs-primary-60: #0b122099;
   --bs-primary-20: #0b122033;
   --bs-shade-rgb: 246 248 250;
+  --bs-horizon-glow: rgb(10 107 168 / 0.06);
+
+  --bs-accent: #0a6ba8;
+  --bs-accent-ink: #ffffff;
+  --bs-border-strong: #9fb2c2;
 
   --ocean-abyss: #eef3f7;
   --ocean-deep: #e3ebf1;
@@ -1016,14 +1044,20 @@ html:has(.bs-landing) {
   --ocean-foam: #0b2233;
 }
 
-/* Theme selector inside the landing navigation */
+/* Theme selector inside the landing navigation. It reads the shared token names, so map them
+   to the landing tokens (the same approach the visitor page uses). */
 .bs-nav__theme {
+  --surface: var(--bs-surface);
+  --surface-2: var(--bs-surface-2);
+  --border-strong: var(--bs-border-strong);
+  --text: var(--bs-primary);
+  --text-muted: var(--bs-secondary);
+  --accent: var(--bs-accent);
+  --accent-ink: var(--bs-accent-ink);
+  --focus: var(--bs-accent);
+
   display: flex;
   align-items: center;
-}
-
-.bs-nav__theme {
-  margin-left: 24px;
 }
 
 .bs-nav__theme--panel {
@@ -1043,4 +1077,21 @@ html:has(.bs-landing) {
 .bs-nav__theme--panel .ts .ts__opt {
   width: auto;
   padding: 0 12px;
+}
+
+/* In the bar the selector is icon-only until there is room for labels. */
+@media (max-width: 1359px) {
+  .bs-nav__theme:not(.bs-nav__theme--panel) .ts__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .bs-nav__theme:not(.bs-nav__theme--panel) .ts .ts__opt {
+    width: 34px;
+    padding: 0;
+  }
 }
