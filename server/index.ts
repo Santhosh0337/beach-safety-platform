@@ -12,10 +12,12 @@ import meHandler from '../api/me';
 import marineHandler from '../api/marine';
 import riskHandler from '../api/risk';
 import adminRolesHandler from '../api/admin/roles';
+import reportsHandler from '../api/reports';
 
 const app = express();
 
 app.use(express.json());
+
 const allowedOrigins = new Set([
   'https://beach-safety-platform.vercel.app',
   'http://localhost:5173',
@@ -46,6 +48,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   next();
 });
+
 function adaptVercelHandler(
   handler: (
     req: VercelRequest,
@@ -65,6 +68,7 @@ app.all('/api/me', adaptVercelHandler(meHandler));
 app.all('/api/marine', adaptVercelHandler(marineHandler));
 app.all('/api/risk', adaptVercelHandler(riskHandler));
 app.all('/api/admin/roles', adaptVercelHandler(adminRolesHandler));
+app.all('/api/reports', adaptVercelHandler(reportsHandler));
 
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
